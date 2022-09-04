@@ -9,18 +9,12 @@ If someone want to convert lots of *pdf Tables into csv* then copy this code:
 for i in glob('C:/Users/Utkarsh Tripathi/Downloads/com/All_files/*.pdf'):
     print(i)
     name = input("For which name U want to save Your Excle File ??.... ")
-
-    
-    
     
     #Getting total pages in pdf 
     file = open(f'{i}', 'rb')
     readpdf = PyPDF2.PdfFileReader(file)
     totalpages = readpdf.numPages
     print(totalpages)
-    
-    
-    
     
     
     #converting into Excel
