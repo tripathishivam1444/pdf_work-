@@ -1,0 +1,93 @@
+
+#place this code in Jupyter notebook and all pdf and this Jupyter Notebook should be in same folder
+
+					
+# importing required modules
+import PyPDF2
+import glob
+from glob import glob
+import pandas as pd
+import camelot
+import os
+import re
+
+import os
+path = os.getcwd().replace("\\", "//") + "//"
+print(path)
+
+
+# path = input("what is your pdf Location : ??  ---->   ").replace("\\" , "//" ) + "//"
+if not os.path.exists(path + "//Excel Files"):               # for creating New Folder name "Excel Files" where is store all converted Excel Files 
+    os.makedirs(path + "//Excel Files")
+    print("folder created")
+
+
+
+
+# For Removing Pre-Existing Excel files in folder
+rr = 0
+for i in glob(path + "*.xlsx"):
+    os.remove(i)
+    rr = rr + 1
+print(f"\n\n ❌ फालतू {rr} Excel file Delete कर दिए । ❌ \n\n\n")
+
+
+# first Counting all pdfs present in folder then Running For Loop on it.
+
+for i in glob(path + "*.pdf"):
+    file_name = os.path.basename(f'{i}')
+    file = open(f'{file_name}', 'rb')
+    pdfReader = PyPDF2.PdfFileReader(file)
+    numOfPages = pdfReader.numPages
+    print(f"\n------- {file_name}  has  {numOfPages} pages --- \n")
+    # loops through all the pages in the PDF
+    for n in range(pdfReader.numPages):                      # selecting one pdf and running for loop on it
+        pageObj = pdfReader.getPage(n)
+        try:
+            text = pageObj.extract_text()
+            if (text == ""):
+                print(f"if wala  {n+1}  Page is Blank ")     # for cheking if page is balnk or not?
+            else:
+                Sheet_names = []
+                regex = r'[L] - \d* |[L]-\d*-\w*|[L] - \d* \w* |[L]\d*-\w*|[L].-\d*|[L]-...|[L]-\d*|[L]\d*|[L]-\d*-\w*-\w*|PART-B|PART B'
+                keys = re.findall(regex,   text)
+                for i in keys:
+                    if i != 'L':
+                        Sheet_names.append(i)
+                print(f"{file_name}  {n+ 1} ---> {Sheet_names[0]}")
+                data = camelot.read_pdf(
+                    f"{file_name}", pages=f"{x}", flavor='stream', table_areas=['0,7550,7550,0'])
+                data[0].df.to_excel(f'{file_name} {x}.xlsx')
+        except:
+            print(f"Except wala      {n+1}  Page is Blank ")
+            Sheet_names = []
+            regex = r'[L]-\d*-|[L] - \d* |[L]-\d*-\w*|[L] - \d* \w* |[L]\d*-\w*|[L].-\d*|[L]-...|[L]-\d*|[L]\d*|[L]-\d*-\w*-\w*|PART-B|PART B'
+            keys = re.findall(regex,   text)
+            for i in keys:
+                if i != 'L':
+                    Sheet_names.append(i)
+            print(f"Except wala  ❌{file_name}  {n +1} ---> {Sheet_names}")
+#
+            data = camelot.read_pdf(
+                f"{file_name}", pages=f"{x}", flavor='stream', table_areas=['0,7550,7550,0'])
+            data[0].df.to_excel(f'{file_name} {x}.xlsx')
+    #  ------------------> Converting It into one Excel with Many Sheets <-----------------------
+    import glob
+    excel_files = glob.glob(path + "//*xlsx")
+    writer = pd.ExcelWriter(path + f"Excel Files//{file_name}.xlsx")
+    for excel_file in excel_files:
+        sheet = os.path.basename(excel_file)
+        df1 = pd.read_excel(excel_file)
+    #   df1.fillna(value='N/A', inplace=True)
+        df1.to_excel(writer, sheet_name=sheet, index=False)
+    writer.save()
+#             print(df1)
+    print(
+        f"\n------------------------ ✅ {file_name} Done  -------------------------------- \n\n\n\n\n\n\n\n")
+    # ----------------> To Remove All Excel files in Directory <-----------------------
+    import os
+    import glob
+    for f in glob.iglob(path+'//*.xlsx', recursive=True):
+        os.remove(f)
+
+
